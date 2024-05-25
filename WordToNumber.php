@@ -17,9 +17,9 @@ class WordToNumber
     protected $numbers;
 
     /**
-     * @var array $mathOperators
+     * @var array $operators
      */
-    protected $mathOperators;
+    protected $operators;
 
     /**
      * @param string $words
@@ -29,17 +29,17 @@ class WordToNumber
     {
         $this->words = strtolower(trim($words));
         $this->numbers = NumericWords::getNumbers();
-        $this->mathOperators = MathOperators::getOperators();
+        $this->operators = MathOperators::getOperators();
     }
 
     /**
-     * Convert words to numbers operators
+     * Convert words to numbers and operators
      * 
      * @return array
      */
-    public function convertWordsToNumbersOperators()
+    public function convertWordsToNumbersAndOperators()
     {
-        $this->validateWords();
+        $this->validateWord();
 
         $results = ['numbers' => [], 'operators' => []];
 
@@ -49,24 +49,28 @@ class WordToNumber
         $words = explode(' ', $this->words);
         foreach ($words as $word) {
             $isNumber = isset($this->numbers[$word]);
-            $isOperator = isset($this->mathOperators[$word]);
+            $isOperator = isset($this->operators[$word]);
+
+            if ($foundOperator) {
+                ++$accumulator;
+            }
 
             if ($isNumber || $isOperator) {
-
-                if ($foundOperator) {
-                    ++$accumulator;
-                }
 
                 $foundOperator = false;
 
                 if ($isOperator) {
                     $foundOperator = true;
-                    $results['operators'][] = $this->mathOperators[$word];
+                    $results['operators'][] = $this->operators[$word];
                 } else {
                     $results['numbers'][$accumulator][] = $this->numbers[$word];
                 }
+            } else if (is_numeric($word)) {
+                $results['numbers'][$accumulator][] = $word;
             }
         }
+
+        $this->validateOperators($results['operators']);
 
         return $results;
     }
@@ -74,14 +78,23 @@ class WordToNumber
     /**
      * @return void
      */
-    public function validateWords()
+    private function validateWord()
     {
         if (empty($this->words)) {
             throw new Exception('La cadena está vacía');
         }
+    }
 
-        if (is_numeric($this->words)) {
-            throw new Exception('Debe ingresar una cadena de texto');
+    /**
+     * Validate operators
+     * 
+     * @param array $operators
+     * @return void
+     */
+    private function validateOperators($operators)
+    {
+        if (empty($operators)) {
+            throw new Exception('No operator found.');
         }
     }
 }

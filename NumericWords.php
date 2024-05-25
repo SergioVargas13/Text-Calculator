@@ -2,6 +2,11 @@
 
 class NumericWords
 {
+    /**
+     * Get numbers
+     * 
+     * @param array numbers
+     */
     public static function getNumbers()
     {
         return [

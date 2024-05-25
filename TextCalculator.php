@@ -30,37 +30,22 @@ class TextCalculator extends WordToNumber
     }
 
     /**
-     * Perform mathematical operation
+     * Perform math operation
      * 
      * @return void
      */
-    public function performMathematicalOperation()
+    public function processMathOperation()
     {
-        echo "Realizando operación matemática...\n";
-
-        $results = $this->convertWordsToNumbersOperators();
+        $results = $this->convertWordsToNumbersAndOperators();
 
         $groupNumbers = $results['numbers'];
         $operators = $results['operators'];
 
-        $this->validateInput($operators);
-
         $expression = $this->extractValuesAndOperator($groupNumbers, $operators);
 
-        $this->showResult($expression);
-    }
+        $result = $this->calculateExpression($expression);
 
-    /**
-     * Validate input
-     * 
-     * @param array $operators
-     * @return void
-     */
-    private function validateInput($operators)
-    {
-        if (empty($operators)) {
-            throw new Exception('No se encontro el operador');
-        }
+        return $result;
     }
 
     /**
@@ -77,10 +62,13 @@ class TextCalculator extends WordToNumber
         $expression = [];
         foreach ($groupNumbers as $key => $numbers) {
             foreach ($numbers as $number) {
-                if ($number >= 1000000) {
-                    $tempNumber = bcmul($tempNumber, strval($number));
+                if ($number >= 1000000 != 0) {
+                    $tempNumber = bcmul($tempNumber, $number);
+                }
+                if ($number >= 1000 && $number <= 1000000) {
+                    $tempNumber = bcmul($tempNumber, $number);
                 } else {
-                    $tempNumber = bcadd($tempNumber, strval($number));
+                    $tempNumber = bcadd($tempNumber, $number);
                 }
             }
 
@@ -143,28 +131,31 @@ class TextCalculator extends WordToNumber
      */
     private function applyOperator($operator, $prevValue, $value)
     {
+        $result = null;
         switch ($operator) {
             case '+':
-                echo "Valor: $prevValue \nOperador: + \nValor: $value \n";
-                return $prevValue + $value;
+                $result = $prevValue + $value;
+                break;
             case '-':
-                echo "Valor: $prevValue \nOperador: - \nValor: $value \n";
-                return $prevValue - $value;
+                $result = $prevValue - $value;
+                break;
             case '*':
-                echo "Valor: $prevValue \nOperador: * \nValor: $value \n";
-                return $prevValue * $value;
+                $result = $prevValue * $value;
+                break;
             case '/':
                 if ($value == 0) {
-                    throw new Exception('División por cero no permitida');
+                    throw new Exception('Division by zero is not allowed');
                 }
-                echo "Valor: $prevValue \nOperador: / \nValor: $value \n";
-                return $prevValue / $value;
+                $result = $prevValue / $value;
+                break;
             case '%':
-                echo "Valor: $prevValue \nOperador: % \nValor: $value \n";
-                return $prevValue % $value;
+                $result = $prevValue % $value;
+                break;
             default:
-                throw new Exception('Operador no válido');
+                throw new Exception('Invalid operator');
         }
+        //echo "Valor: $prevValue \nOperador: $operator \nValor: $value \n";
+        return $result;
     }
 
     /**
@@ -182,11 +173,26 @@ class TextCalculator extends WordToNumber
 
         echo "El resultado es: $this->result \n";
         echo "------------------------------------- \n";
+
+        return $this->result;
     }
 }
 
-echo "Por favor, ingresa el texto a calcular: ";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $data = file_get_contents("php://input");
+    
+    $data = json_decode($data, true);
+
+    $words = $data['words'];
+
+    $textCalculator = new TextCalculator($words);
+    $result = $textCalculator->processMathOperation();
+
+    echo json_encode($result);
+}
+
+/*echo "Por favor, ingresa el texto a calcular: ";
 $text = fgets(STDIN);
 
 $textCalculator = new TextCalculator($text);
-$textCalculator->performMathematicalOperation();
+$textCalculator->processMathOperation();*/

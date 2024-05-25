@@ -2,6 +2,11 @@
 
 class MathOperators
 {
+    /**
+     * Get operators
+     * 
+     * @return array operators
+     */
     public static function getOperators()
     {
         return [
